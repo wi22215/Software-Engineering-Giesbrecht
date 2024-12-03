@@ -4,41 +4,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instagram Uploader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #f8fafc, #ffffff);
+            color: #333;
+        }
+
+        header {
+            background-color: #ff3e3e;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        main {
+            margin: 40px auto;
+            max-width: 600px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #ff3e3e;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e02e2e;
+        }
+
+        .preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .preview img, .preview video {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
-    <h1>Instagram Uploader</h1>
-    <form id="uploadForm">
-        <label for="type">Select Type:</label>
-        <select id="type" name="type">
-            <option value="image">Image</option>
-            <option value="video">Video</option>
-        </select>
-        <br><br>
-        <label for="url">Media URL:</label>
-        <input type="text" id="url" name="url" required>
-        <br><br>
-        <label for="caption">Caption:</label>
-        <textarea id="caption" name="caption" required></textarea>
-        <br><br>
-        <button type="submit">Upload</button>
-    </form>
-
+    <header>
+        Instagram Uploader
+    </header>
+    <main>
+        <h1>Upload Your Post</h1>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file">Choose Image or Video:</label>
+            <input type="file" id="file" name="file" accept="image/*,video/*" required>
+            
+            <label for="caption">Write a Caption:</label>
+            <textarea id="caption" name="caption" rows="4" placeholder="Add a caption to your post..."></textarea>
+            
+            <div class="preview" id="preview"></div>
+            
+            <button type="submit">Upload Now</button>
+        </form>
+    </main>
+    <footer>
+        &copy; 2024 Instagram Uploader. All Rights Reserved.
+    </footer>
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const type = document.getElementById('type').value;
-            const url = document.getElementById('url').value;
-            const caption = document.getElementById('caption').value;
+        // JavaScript to preview the selected file
+        const fileInput = document.getElementById('file');
+        const preview = document.getElementById('preview');
 
-            const endpoint = type === 'image' ? '/upload/image' : '/upload/video';
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ [`${type}_url`]: url, caption })
-            });
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            preview.innerHTML = ''; // Clear previous preview
 
-            const result = await response.json();
-            alert(result.message || result.error);
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = fileURL;
+                    preview.appendChild(img);
+                } else if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = fileURL;
+                    video.controls = true;
+                    preview.appendChild(video);
+                }
+            }
         });
     </script>
 </body>
