@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Uploader</title>
+</head>
+<body>
+    <h1>Instagram Uploader</h1>
+    <form id="uploadForm">
+        <label for="type">Select Type:</label>
+        <select id="type" name="type">
+            <option value="image">Image</option>
+            <option value="video">Video</option>
+        </select>
+        <br><br>
+        <label for="url">Media URL:</label>
+        <input type="text" id="url" name="url" required>
+        <br><br>
+        <label for="caption">Caption:</label>
+        <textarea id="caption" name="caption" required></textarea>
+        <br><br>
+        <button type="submit">Upload</button>
+    </form>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('type').value;
+            const url = document.getElementById('url').value;
+            const caption = document.getElementById('caption').value;
+
+            const endpoint = type === 'image' ? '/upload/image' : '/upload/video';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [`${type}_url`]: url, caption })
+            });
+
+            const result = await response.json();
+            alert(result.message || result.error);
+        });
+    </script>
+</body>
+</html>

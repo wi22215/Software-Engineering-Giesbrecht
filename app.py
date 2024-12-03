@@ -24,7 +24,7 @@ def health_check():
     return jsonify({"status": "OK", "message": "Backend is running"}), 200
 
 # Route: Bild-Upload
-@app.route('/upload/image', methods=['POST'])
+@app.route('c', methods=['POST'])
 def upload_image():
     data = request.json
     image_url = data.get("image_url")
