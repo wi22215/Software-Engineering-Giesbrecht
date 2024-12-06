@@ -1,15 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import os
-from dotenv import load_dotenv
-import requests
-
-# Lade Umgebungsvariablen aus der .env-Datei
-load_dotenv()
-
-# Instagram API Konfiguration
-INSTAGRAM_ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN")
-INSTAGRAM_USER_ID = os.getenv("INSTAGRAM_USER_ID")
-INSTAGRAM_API_URL = "https://graph.facebook.com/v17.0"
+from instagrapi import Client
 
 # Initialisiere Flask
 app = Flask(__name__)
@@ -21,6 +12,13 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Instagram-Konto-Konfiguration
+INSTAGRAM_USERNAME = os.getenv("INSTAGRAM_USERNAME")
+INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+
+# Initialisiere Instagrapi Client
+cl = Client()
+
 # Route: Startseite
 @app.route('/')
 def home():
@@ -29,8 +27,8 @@ def home():
 # Route: Datei-Upload
 @app.route('/upload', methods=['POST'])
 def upload():
-    file = request.files['file']
-    caption = request.form['caption']
+    file = request.files.get('file')
+    caption = request.form.get('caption')
 
     if not file:
         return jsonify({"error": "No file provided"}), 400
@@ -39,41 +37,25 @@ def upload():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(file_path)
 
-    # Optional: Auf Instagram hochladen
+    # Hochladen zu Instagram
     try:
         response = upload_to_instagram(file_path, caption)
         return jsonify({"message": "File uploaded successfully to Instagram", "response": response}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Funktion: Hochladen auf Instagram
+# Funktion: Bild zu Instagram hochladen
 def upload_to_instagram(file_path, caption):
-    # Schritt 1: Medienobjekt erstellen
-    media_url = f"{INSTAGRAM_API_URL}/{INSTAGRAM_USER_ID}/media"
-    media_payload = {
-        "image_url": file_path,  # Für Bilder (oder video_url für Videos)
-        "caption": caption,
-        "access_token": INSTAGRAM_ACCESS_TOKEN,
-    }
+    try:
+        # Instagram-Login
+        cl.login(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
+        print("Successfully logged into Instagram.")
 
-    media_response = requests.post(media_url, data=media_payload)
-    if media_response.status_code != 200:
-        raise Exception(f"Instagram API Error: {media_response.text}")
-
-    media_id = media_response.json().get("id")
-
-    # Schritt 2: Medienobjekt veröffentlichen
-    publish_url = f"{INSTAGRAM_API_URL}/{INSTAGRAM_USER_ID}/media_publish"
-    publish_payload = {
-        "creation_id": media_id,
-        "access_token": INSTAGRAM_ACCESS_TOKEN,
-    }
-
-    publish_response = requests.post(publish_url, data=publish_payload)
-    if publish_response.status_code != 200:
-        raise Exception(f"Instagram API Error: {publish_response.text}")
-
-    return publish_response.json()
+        # Hochladen des Bildes
+        media = cl.photo_upload(file_path, caption)
+        return {"media_id": media.pk, "caption": caption}
+    except Exception as e:
+        raise Exception(f"Instagram API Error: {e}")
 
 # Route: Server-Health-Check
 @app.route('/health', methods=['GET'])
