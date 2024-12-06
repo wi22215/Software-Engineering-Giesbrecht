@@ -10,65 +10,115 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #f8fafc, #ffffff);
+            background: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
             color: #333;
         }
 
         header {
-            background-color: #ff3e3e;
+            background: linear-gradient(135deg, #d62976, #962fbf, #4f5bd5);
             color: white;
             padding: 20px;
             text-align: center;
-            font-size: 24px;
+            font-size: 32px;
             font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         main {
-            margin: 40px auto;
-            max-width: 600px;
+            margin: 60px auto;
+            max-width: 700px;
             background: #ffffff;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             text-align: center;
         }
 
         h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            color: #333;
+            font-size: 30px;
+            margin-bottom: 20px;
+            color: #444;
         }
 
         label {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             text-align: left;
         }
 
-        input, textarea, button {
+        input, textarea, #uploadButton {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
+            padding: 15px;
+            margin-bottom: 25px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 10px;
             box-sizing: border-box;
-            font-size: 14px;
+            font-size: 16px;
+            transition: box-shadow 0.3s ease;
         }
 
-        button {
-            background-color: #ff3e3e;
+        input:focus, textarea:focus {
+            box-shadow: 0 0 8px rgba(240, 119, 219, 0.5);
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        #chooseFileButton {
+            background: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
             color: white;
             font-weight: bold;
             font-size: 16px;
             border: none;
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background 0.3s, transform 0.2s;
         }
 
-        button:hover {
-            background-color: #e02e2e;
+        #chooseFileButton:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #e95950, #bc2a8d);
+        }
+
+        #file {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0;
+            padding: 0;
+            font-size: 100px;
+            cursor: pointer;
+            opacity: 0;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #777;
+            font-weight: bold;
+        }
+
+        button {
+            background: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        #uploadButton:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #e95950, #bc2a8d);
         }
 
         .preview {
@@ -78,16 +128,37 @@
 
         .preview img, .preview video {
             max-width: 100%;
-            max-height: 200px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            margin-top: 10px;
+            max-height: 300px;
+            border-radius: 15px;
+            border: 2px solid #ddd;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #777;
+            margin-top: 40px;
+            font-size: 14px;
+            color: #555;
+            text-align: center;
+            padding: 20px;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+
+        .social-icons {
+            margin-top: 15px;
+        }
+
+        .social-icons a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #d62976;
+            font-size: 24px;
+            transition: color 0.3s;
+        }
+
+        .social-icons a:hover {
+            color: #962fbf;
         }
     </style>
 </head>
@@ -99,32 +170,52 @@
     <h1>Upload Your Post</h1>
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
         <label for="file">Choose Image or Video:</label>
-        <input type="file" id="file" name="file" accept="image/*,video/*" required>
+        <div class="file-upload-wrapper">
+            <button id="chooseFileButton" type="button">Choose File</button>
+            <input type="file" id="file" name="file" accept="image/*,video/*" required>
+        </div>
+        <div class="file-name" id="fileName"></div>
 
         <label for="caption">Write a Caption:</label>
         <textarea id="caption" name="caption" rows="4" placeholder="Add a caption to your post..."></textarea>
 
         <label for="upload_time">Schedule Upload Time:</label>
-        <input type="datetime-local" id="upload_time" name="upload_time" required>
+        <input type="datetime-local" id="upload_time" name="upload_time">
 
         <div class="preview" id="preview"></div>
 
-        <button type="submit">Schedule Upload</button>
+        <button id="uploadButton" type="submit">Upload</button>
     </form>
 </main>
 <footer>
     &copy; 2024 Instagram Uploader. All Rights Reserved.
+    <div class="social-icons">
+        <a href="#" title="Follow us on Twitter"><i class="fab fa-twitter"></i></a>
+        <a href="#" title="Follow us on Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="#" title="Follow us on Facebook"><i class="fab fa-facebook"></i></a>
+    </div>
 </footer>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 <script>
     // JavaScript to preview the selected file
     const fileInput = document.getElementById('file');
     const preview = document.getElementById('preview');
+    const chooseFileButton = document.getElementById('chooseFileButton');
+    const uploadButton = document.getElementById('uploadButton');
+    const uploadTimeInput = document.getElementById('upload_time');
+    const fileNameDisplay = document.getElementById('fileName');
+
+    chooseFileButton.addEventListener('click', () => {
+        fileInput.click();
+    });
 
     fileInput.addEventListener('change', () => {
         const file = fileInput.files[0];
         preview.innerHTML = ''; // Clear previous preview
+        fileNameDisplay.textContent = ''; // Clear previous file name
 
         if (file) {
+            fileNameDisplay.textContent = `Selected file: ${file.name}`;
             const fileURL = URL.createObjectURL(file);
 
             if (file.type.startsWith('image/')) {
@@ -137,6 +228,15 @@
                 video.controls = true;
                 preview.appendChild(video);
             }
+        }
+    });
+
+    // Change button text based on upload time input
+    uploadTimeInput.addEventListener('input', () => {
+        if (uploadTimeInput.value) {
+            uploadButton.textContent = 'Schedule Upload';
+        } else {
+            uploadButton.textContent = 'Upload';
         }
     });
 </script>
