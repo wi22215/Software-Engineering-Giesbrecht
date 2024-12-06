@@ -1,113 +1,68 @@
 from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 import os
-from datetime import datetime
-from threading import Timer
-from instagrapi import Client
-from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+from models import db  # Importiere die `db`-Instanz aus models.py
 
-# Initialisiere Flask
+# Lade Umgebungsvariablen
+load_dotenv()
+
+# Flask-Konfiguration
 app = Flask(__name__)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "instance", "uploads.db")}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialisiere die Datenbank
+db.init_app(app)
 
 # Sicherstellen, dass der Upload-Ordner existiert
 UPLOAD_FOLDER = "uploads"
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# Instagram-Konto-Konfiguration
-INSTAGRAM_USERNAME = os.getenv("INSTAGRAM_USERNAME")
-INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+# Importiere Modelle (auslagern in models.py)
+from models import Media
 
-# Initialisiere Instagrapi Client
-cl = Client()
-
-# Erlaubte Dateitypen
-ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp'}
-ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
-
-def allowed_file(filename, allowed_extensions):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
-
+# Routen
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Route: Datei-Upload
 @app.route('/upload', methods=['POST'])
 def upload():
     file = request.files.get('file')
-    caption = request.form.get('caption')
-    upload_time_str = request.form.get('upload_time')
+    caption = request.form.get('caption', '')
 
     if not file:
         return jsonify({"error": "No file provided"}), 400
 
-    # Sicherstellen, dass die Datei einen erlaubten Typ hat
-    filename = secure_filename(file.filename)
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    # Speichere Datei
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(file_path)
 
-    if allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS):
-        # Bild hochladen
-        try:
-            schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
-            return jsonify({"message": "Photo scheduled for upload to Instagram."}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    elif allowed_file(filename, ALLOWED_VIDEO_EXTENSIONS):
-        # Video hochladen
-        try:
-            schedule_upload(file_path, caption, upload_time_str, upload_video_to_instagram)
-            return jsonify({"message": "Video scheduled for upload to Instagram."}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    else:
-        return jsonify({"error": "Invalid file format. Only JPG, JPEG, PNG, WEBP, and MP4 are supported."}), 400
+    # In der Datenbank speichern
+    media = Media(filename=file.filename, filepath=file_path, caption=caption)
+    db.session.add(media)
+    db.session.commit()
 
-# Funktion: Bild zu Instagram hochladen
-def upload_photo_to_instagram(file_path, caption):
-    try:
-        # Instagram-Login
-        cl.login(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
-        print("Successfully logged into Instagram.")
+    return jsonify({"message": "File uploaded successfully", "media_id": media.id}), 201
 
-        # Hochladen des Bildes
-        media = cl.photo_upload(file_path, caption)
-        return {"media_id": media.pk, "caption": caption}
-    except Exception as e:
-        raise Exception(f"Instagram API Error: {e}")
-
-# Funktion: Video zu Instagram hochladen
-def upload_video_to_instagram(file_path, caption):
-    try:
-        # Instagram-Login
-        cl.login(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
-        print("Successfully logged into Instagram.")
-
-        # Hochladen des Videos
-        media = cl.video_upload(file_path, caption)
-        return {"media_id": media.pk, "caption": caption}
-    except Exception as e:
-        raise Exception(f"Instagram API Error: {e}")
-
-# Funktion: Zeitgesteuertes Hochladen planen
-def schedule_upload(file_path, caption, upload_time_str, upload_function):
-    try:
-        upload_time = datetime.strptime(upload_time_str, '%Y-%m-%dT%H:%M')
-        delay = (upload_time - datetime.now()).total_seconds()
-        if delay > 0:
-            Timer(delay, upload_function, [file_path, caption]).start()
-            print(f"Upload scheduled for {upload_time_str}")
-        else:
-            raise Exception("Scheduled time is in the past. Please choose a future time.")
-    except ValueError:
-        raise Exception("Invalid datetime format. Please use the correct format.")
-
-# Route: Server-Health-Check
-@app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify({"status": "OK", "message": "Server is running"}), 200
+@app.route('/media', methods=['GET'])
+def get_media():
+    media_list = Media.query.all()
+    response = [
+        {
+            "id": media.id,
+            "filename": media.filename,
+            "filepath": media.filepath,
+            "caption": media.caption,
+            "uploaded_at": media.uploaded_at
+        }
+        for media in media_list
+    ]
+    return jsonify(response), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
