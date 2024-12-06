@@ -92,50 +92,53 @@
     </style>
 </head>
 <body>
-    <header>
-        Instagram Uploader
-    </header>
-    <main>
-        <h1>Upload Your Post</h1>
-        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-            <label for="file">Choose Image or Video:</label>
-            <input type="file" id="file" name="file" accept="image/*,video/*" required>
-            
-            <label for="caption">Write a Caption:</label>
-            <textarea id="caption" name="caption" rows="4" placeholder="Add a caption to your post..."></textarea>
-            
-            <div class="preview" id="preview"></div>
-            
-            <button type="submit">Upload Now</button>
-        </form>
-    </main>
-    <footer>
-        &copy; 2024 Instagram Uploader. All Rights Reserved.
-    </footer>
-    <script>
-        // JavaScript to preview the selected file
-        const fileInput = document.getElementById('file');
-        const preview = document.getElementById('preview');
+<header>
+    Instagram Uploader
+</header>
+<main>
+    <h1>Upload Your Post</h1>
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+        <label for="file">Choose Image or Video:</label>
+        <input type="file" id="file" name="file" accept="image/*,video/*" required>
 
-        fileInput.addEventListener('change', () => {
-            const file = fileInput.files[0];
-            preview.innerHTML = ''; // Clear previous preview
+        <label for="caption">Write a Caption:</label>
+        <textarea id="caption" name="caption" rows="4" placeholder="Add a caption to your post..."></textarea>
 
-            if (file) {
-                const fileURL = URL.createObjectURL(file);
+        <label for="upload_time">Schedule Upload Time:</label>
+        <input type="datetime-local" id="upload_time" name="upload_time" required>
 
-                if (file.type.startsWith('image/')) {
-                    const img = document.createElement('img');
-                    img.src = fileURL;
-                    preview.appendChild(img);
-                } else if (file.type.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = fileURL;
-                    video.controls = true;
-                    preview.appendChild(video);
-                }
+        <div class="preview" id="preview"></div>
+
+        <button type="submit">Schedule Upload</button>
+    </form>
+</main>
+<footer>
+    &copy; 2024 Instagram Uploader. All Rights Reserved.
+</footer>
+<script>
+    // JavaScript to preview the selected file
+    const fileInput = document.getElementById('file');
+    const preview = document.getElementById('preview');
+
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        preview.innerHTML = ''; // Clear previous preview
+
+        if (file) {
+            const fileURL = URL.createObjectURL(file);
+
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = fileURL;
+                preview.appendChild(img);
+            } else if (file.type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = fileURL;
+                video.controls = true;
+                preview.appendChild(video);
             }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>

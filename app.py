@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 import os
+from datetime import datetime
+from threading import Timer
 from instagrapi import Client
 from werkzeug.utils import secure_filename
-from moviepy import *
 
 # Initialisiere Flask
 app = Flask(__name__)
@@ -37,6 +38,7 @@ def home():
 def upload():
     file = request.files.get('file')
     caption = request.form.get('caption')
+    upload_time_str = request.form.get('upload_time')
 
     if not file:
         return jsonify({"error": "No file provided"}), 400
@@ -49,15 +51,15 @@ def upload():
     if allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS):
         # Bild hochladen
         try:
-            response = upload_photo_to_instagram(file_path, caption)
-            return jsonify({"message": "Photo uploaded successfully to Instagram.", "response": response}), 200
+            schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
+            return jsonify({"message": "Photo scheduled for upload to Instagram."}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     elif allowed_file(filename, ALLOWED_VIDEO_EXTENSIONS):
         # Video hochladen
         try:
-            response = upload_video_to_instagram(file_path, caption)
-            return jsonify({"message": "Video uploaded successfully to Instagram.", "response": response}), 200
+            schedule_upload(file_path, caption, upload_time_str, upload_video_to_instagram)
+            return jsonify({"message": "Video scheduled for upload to Instagram."}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     else:
@@ -88,6 +90,19 @@ def upload_video_to_instagram(file_path, caption):
         return {"media_id": media.pk, "caption": caption}
     except Exception as e:
         raise Exception(f"Instagram API Error: {e}")
+
+# Funktion: Zeitgesteuertes Hochladen planen
+def schedule_upload(file_path, caption, upload_time_str, upload_function):
+    try:
+        upload_time = datetime.strptime(upload_time_str, '%Y-%m-%dT%H:%M')
+        delay = (upload_time - datetime.now()).total_seconds()
+        if delay > 0:
+            Timer(delay, upload_function, [file_path, caption]).start()
+            print(f"Upload scheduled for {upload_time_str}")
+        else:
+            raise Exception("Scheduled time is in the past. Please choose a future time.")
+    except ValueError:
+        raise Exception("Invalid datetime format. Please use the correct format.")
 
 # Route: Server-Health-Check
 @app.route('/health', methods=['GET'])
