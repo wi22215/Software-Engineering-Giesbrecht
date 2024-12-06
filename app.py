@@ -51,15 +51,23 @@ def upload():
     if allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS):
         # Bild hochladen
         try:
-            schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
-            return jsonify({"message": "Photo scheduled for upload to Instagram."}), 200
+            if upload_time_str:
+                schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
+                return jsonify({"message": "Photo scheduled for upload to Instagram."}), 200
+            else:
+                upload_photo_to_instagram(file_path, caption)
+                return jsonify({"message": "Content successfully uploaded."}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     elif allowed_file(filename, ALLOWED_VIDEO_EXTENSIONS):
         # Video hochladen
         try:
-            schedule_upload(file_path, caption, upload_time_str, upload_video_to_instagram)
-            return jsonify({"message": "Video scheduled for upload to Instagram."}), 200
+            if upload_time_str:
+                schedule_upload(file_path, caption, upload_time_str, upload_video_to_instagram)
+                return jsonify({"message": "Video scheduled for upload to Instagram."}), 200
+            else:
+                upload_video_to_instagram(file_path, caption)
+                return jsonify({"message": "Content successfully uploaded."}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     else:
