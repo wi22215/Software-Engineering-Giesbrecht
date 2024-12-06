@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 import os
 from instagrapi import Client
+from werkzeug.utils import secure_filename
+from moviepy import *
 
 # Initialisiere Flask
 app = Flask(__name__)
@@ -19,7 +21,13 @@ INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
 # Initialisiere Instagrapi Client
 cl = Client()
 
-# Route: Startseite
+# Erlaubte Dateitypen
+ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
+
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -33,19 +41,30 @@ def upload():
     if not file:
         return jsonify({"error": "No file provided"}), 400
 
-    # Speichere die Datei im Upload-Ordner
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    # Sicherstellen, dass die Datei einen erlaubten Typ hat
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(file_path)
 
-    # Hochladen zu Instagram
-    try:
-        response = upload_to_instagram(file_path, caption)
-        return jsonify({"message": "File uploaded successfully to Instagram", "response": response}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    if allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS):
+        # Bild hochladen
+        try:
+            response = upload_photo_to_instagram(file_path, caption)
+            return jsonify({"message": "Photo uploaded successfully to Instagram.", "response": response}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    elif allowed_file(filename, ALLOWED_VIDEO_EXTENSIONS):
+        # Video hochladen
+        try:
+            response = upload_video_to_instagram(file_path, caption)
+            return jsonify({"message": "Video uploaded successfully to Instagram.", "response": response}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    else:
+        return jsonify({"error": "Invalid file format. Only JPG, JPEG, PNG, WEBP, and MP4 are supported."}), 400
 
 # Funktion: Bild zu Instagram hochladen
-def upload_to_instagram(file_path, caption):
+def upload_photo_to_instagram(file_path, caption):
     try:
         # Instagram-Login
         cl.login(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
@@ -53,6 +72,19 @@ def upload_to_instagram(file_path, caption):
 
         # Hochladen des Bildes
         media = cl.photo_upload(file_path, caption)
+        return {"media_id": media.pk, "caption": caption}
+    except Exception as e:
+        raise Exception(f"Instagram API Error: {e}")
+
+# Funktion: Video zu Instagram hochladen
+def upload_video_to_instagram(file_path, caption):
+    try:
+        # Instagram-Login
+        cl.login(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
+        print("Successfully logged into Instagram.")
+
+        # Hochladen des Videos
+        media = cl.video_upload(file_path, caption)
         return {"media_id": media.pk, "caption": caption}
     except Exception as e:
         raise Exception(f"Instagram API Error: {e}")
