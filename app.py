@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 from datetime import datetime
 from threading import Timer
@@ -16,8 +16,8 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Instagram-Konto-Konfiguration
-INSTAGRAM_USERNAME = os.getenv("INSTAGRAM_USERNAME")
-INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+INSTAGRAM_USERNAME = os.getenv("INSTAGRAM_USERNAME", "your_username")  # Ersetze 'your_username'
+INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD", "your_password")  # Ersetze 'your_password'
 
 # Initialisiere Instagrapi Client
 cl = Client()
@@ -68,28 +68,36 @@ def upload():
 # Funktion: Bild zu Instagram hochladen
 def upload_photo_to_instagram(file_path, caption):
     try:
-        # Instagram-Login
         cl.login(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
         print("Successfully logged into Instagram.")
-
-        # Hochladen des Bildes
         media = cl.photo_upload(file_path, caption)
-        return {"media_id": media.pk, "caption": caption}
+        print("Photo uploaded:", media.pk)
     except Exception as e:
         raise Exception(f"Instagram API Error: {e}")
 
 # Funktion: Video zu Instagram hochladen
 def upload_video_to_instagram(file_path, caption):
     try:
-        # Instagram-Login
         cl.login(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
         print("Successfully logged into Instagram.")
-
-        # Hochladen des Videos
         media = cl.video_upload(file_path, caption)
-        return {"media_id": media.pk, "caption": caption}
+        print("Video uploaded:", media.pk)
     except Exception as e:
         raise Exception(f"Instagram API Error: {e}")
+
+# Route: Vergangene Uploads
+@app.route('/past-uploads', methods=['GET'])
+def past_uploads():
+    try:
+        uploads = os.listdir(app.config['UPLOAD_FOLDER'])
+        uploads = [f for f in uploads if os.path.isfile(os.path.join(app.config['UPLOAD_FOLDER'], f))]
+        return render_template('past_uploads.html', uploads=uploads)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Funktion: Zeitgesteuertes Hochladen planen
 def schedule_upload(file_path, caption, upload_time_str, upload_function):

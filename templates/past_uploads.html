@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Uploads</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #4f46e5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        main {
+            flex-grow: 1;
+            margin: 40px auto;
+            max-width: 800px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #4f46e5;
+        }
+
+        .uploads {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .upload-item {
+            background: #f8fafc;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 10px;
+            width: 150px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .upload-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .upload-item img, .upload-item video {
+            max-width: 100%;
+            max-height: 120px;
+            border-radius: 8px;
+        }
+
+        .upload-item a {
+            display: block;
+            margin-top: 10px;
+            text-decoration: none;
+            color: #4f46e5;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .upload-item a:hover {
+            text-decoration: underline;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4f46e5;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-button:hover {
+            background-color: #3b38d6;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            background-color: #f1f5f9;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            color: #4b5563;
+            margin-top: auto;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+<header>
+    Past Uploads
+</header>
+<main>
+    <h1>Your Uploaded Files</h1>
+    {% if uploads %}
+    <div class="uploads">
+        {% for file in uploads %}
+        <div class="upload-item">
+            {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.webp') %}
+            <img src="/uploads/{{ file }}" alt="{{ file }}">
+            {% elif file.endswith('.mp4') %}
+            <video src="/uploads/{{ file }}" controls></video>
+            {% endif %}
+            <a href="/uploads/{{ file }}" target="_blank">{{ file }}</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No uploads found.</p>
+    {% endif %}
+    <a href="/" class="back-button">Back to Uploader</a>
+</main>
+<footer>
+    &copy; 2024 Instagram Uploader. Created with ❤️ by <a href="#">Clemens, Jasin & Laurenziu</a>.
+</footer>
+</body>
+</html>

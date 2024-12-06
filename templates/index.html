@@ -10,33 +10,44 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #f8fafc, #ffffff);
+            background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
             color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         header {
-            background-color: #ff3e3e;
+            background-color: #4f46e5;
             color: white;
             padding: 20px;
             text-align: center;
             font-size: 24px;
             font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         main {
+            flex-grow: 1;
             margin: 40px auto;
             max-width: 600px;
-            background: #ffffff;
+            background: white;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        main:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
         }
 
         h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            color: #333;
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #4f46e5;
         }
 
         label {
@@ -45,6 +56,7 @@
             display: block;
             margin-bottom: 8px;
             text-align: left;
+            color: #4f46e5;
         }
 
         input, textarea, button {
@@ -52,23 +64,30 @@
             padding: 12px;
             margin-bottom: 20px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 12px;
             box-sizing: border-box;
             font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, button:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 4px rgba(79, 70, 229, 0.5);
         }
 
         button {
-            background-color: #ff3e3e;
+            background-color: #4f46e5;
             color: white;
             font-weight: bold;
             font-size: 16px;
             border: none;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
         }
 
         button:hover {
-            background-color: #e02e2e;
+            background-color: #3b38d6;
         }
 
         .preview {
@@ -82,12 +101,46 @@
             border-radius: 10px;
             border: 1px solid #ddd;
             margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .preview img:hover, .preview video:hover {
+            transform: scale(1.05);
+        }
+
+        #drag-drop-area {
+            border: 2px dashed #4f46e5;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        #drag-drop-area.dragover {
+            background-color: #e0e7ff;
+            border-color: #3b38d6;
         }
 
         footer {
-            margin-top: 20px;
+            background-color: #f1f5f9;
+            padding: 10px;
+            text-align: center;
             font-size: 12px;
-            color: #777;
+            color: #4b5563;
+            margin-top: auto;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        footer a {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -98,8 +151,8 @@
 <main>
     <h1>Upload Your Post</h1>
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-        <label for="file">Choose Image or Video:</label>
-        <input type="file" id="file" name="file" accept="image/*,video/*" required>
+        <div id="drag-drop-area">Drag and drop your files here or click to select.</div>
+        <input type="file" id="file" name="file" accept="image/*,video/*" hidden required>
 
         <label for="caption">Write a Caption:</label>
         <textarea id="caption" name="caption" rows="4" placeholder="Add a caption to your post..."></textarea>
@@ -111,22 +164,48 @@
 
         <button type="submit">Schedule Upload</button>
     </form>
+    <button id="viewUploads" onclick="viewUploads()">View Past Uploads</button>
 </main>
 <footer>
-    &copy; 2024 Instagram Uploader. All Rights Reserved.
+    &copy; 2024 Instagram Uploader. Created with ❤️ by <a href="#">Clemens, Jasin & Laurenziu</a>.
 </footer>
 <script>
-    // JavaScript to preview the selected file
+    // Drag-and-Drop Functionality
+    const dragDropArea = document.getElementById('drag-drop-area');
     const fileInput = document.getElementById('file');
     const preview = document.getElementById('preview');
 
+    dragDropArea.addEventListener('click', () => fileInput.click());
+
+    dragDropArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dragDropArea.classList.add('dragover');
+    });
+
+    dragDropArea.addEventListener('dragleave', () => {
+        dragDropArea.classList.remove('dragover');
+    });
+
+    dragDropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragDropArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            previewFile(files[0]);
+        }
+    });
+
+    // Preview File
     fileInput.addEventListener('change', () => {
         const file = fileInput.files[0];
-        preview.innerHTML = ''; // Clear previous preview
+        previewFile(file);
+    });
 
+    function previewFile(file) {
+        preview.innerHTML = '';
         if (file) {
             const fileURL = URL.createObjectURL(file);
-
             if (file.type.startsWith('image/')) {
                 const img = document.createElement('img');
                 img.src = fileURL;
@@ -138,7 +217,12 @@
                 preview.appendChild(video);
             }
         }
-    });
+    }
+
+    // View Past Uploads
+    function viewUploads() {
+        window.location.href = '/past-uploads'; // Adjust to the correct route in your app
+    }
 </script>
 </body>
 </html>
