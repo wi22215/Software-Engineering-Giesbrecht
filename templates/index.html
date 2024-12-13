@@ -90,6 +90,11 @@
             background-color: #3b38d6;
         }
 
+        button:disabled {
+            background-color: #a3a3a3;
+            cursor: not-allowed;
+        }
+
         .preview {
             margin-top: 20px;
             text-align: center;
@@ -162,9 +167,8 @@
 
         <div class="preview" id="preview"></div>
 
-        <!-- Neuer Button -->
-        <button type="submit" name="action" value="upload_now">Upload Now</button>
-        <button type="submit" name="action" value="schedule">Schedule Upload</button>
+        <button type="submit" name="action" value="upload_now" id="uploadNowButton" disabled>Upload Now</button>
+        <button type="submit" name="action" value="schedule" id="scheduleButton" disabled>Schedule Upload</button>
     </form>
     <button id="viewUploads" onclick="viewUploads()">View Past Uploads</button>
 </main>
@@ -177,6 +181,9 @@
     const dragDropArea = document.getElementById('drag-drop-area');
     const fileInput = document.getElementById('file');
     const preview = document.getElementById('preview');
+    const uploadNowButton = document.getElementById('uploadNowButton');
+    const scheduleButton = document.getElementById('scheduleButton');
+    const uploadTimeInput = document.getElementById('upload_time');
 
     dragDropArea.addEventListener('click', () => fileInput.click());
 
@@ -196,6 +203,7 @@
         if (files.length > 0) {
             fileInput.files = files;
             previewFile(files[0]);
+            toggleButtons();
         }
     });
 
@@ -203,6 +211,7 @@
     fileInput.addEventListener('change', () => {
         const file = fileInput.files[0];
         previewFile(file);
+        toggleButtons();
     });
 
     function previewFile(file) {
@@ -221,6 +230,17 @@
             }
         }
     }
+
+    // Toggle Button States
+    function toggleButtons() {
+        const fileSelected = fileInput.files.length > 0;
+        const timeSelected = uploadTimeInput.value !== '';
+
+        uploadNowButton.disabled = !fileSelected;
+        scheduleButton.disabled = !(fileSelected && timeSelected);
+    }
+
+    uploadTimeInput.addEventListener('input', toggleButtons);
 
     // View Past Uploads
     function viewUploads() {

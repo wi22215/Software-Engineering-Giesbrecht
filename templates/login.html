@@ -71,6 +71,11 @@
             color: red;
             margin-bottom: 10px;
         }
+        .loading-message {
+            display: none;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
         footer {
             background-color: #f1f5f9;
             padding: 10px;
@@ -99,6 +104,7 @@
     {% if error %}
     <div class="error">{{ error }}</div>
     {% endif %}
+    <div class="loading-message" id="loadingMessage">Checking login, please wait...</div>
     <form id="loginForm" action="/" method="POST">
         <label for="username">Username or Email:</label>
         <input type="text" id="username" name="username" required>
@@ -110,5 +116,13 @@
 <footer>
     &copy; 2024 Instagram Uploader. Created with ❤️ by <a href="#">Clemens, Jasin & Laurenziu</a>.
 </footer>
+<script>
+    const loginForm = document.getElementById('loginForm');
+    const loadingMessage = document.getElementById('loadingMessage');
+
+    loginForm.addEventListener('submit', () => {
+        loadingMessage.style.display = 'block';
+    });
+</script>
 </body>
 </html>
