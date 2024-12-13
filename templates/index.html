@@ -158,14 +158,17 @@
         <textarea id="caption" name="caption" rows="4" placeholder="Add a caption to your post..."></textarea>
 
         <label for="upload_time">Schedule Upload Time:</label>
-        <input type="datetime-local" id="upload_time" name="upload_time" required>
+        <input type="datetime-local" id="upload_time" name="upload_time">
 
         <div class="preview" id="preview"></div>
 
-        <button type="submit">Schedule Upload</button>
+        <!-- Neuer Button -->
+        <button type="submit" name="action" value="upload_now">Upload Now</button>
+        <button type="submit" name="action" value="schedule">Schedule Upload</button>
     </form>
     <button id="viewUploads" onclick="viewUploads()">View Past Uploads</button>
 </main>
+
 <footer>
     &copy; 2024 Instagram Uploader. Created with ❤️ by <a href="#">Clemens, Jasin & Laurenziu</a>.
 </footer>
@@ -221,7 +224,7 @@
 
     // View Past Uploads
     function viewUploads() {
-        window.location.href = '/past-uploads'; // Adjust to the correct route in your app
+        window.location.href = '/past-uploads';
     }
 </script>
 </body>
