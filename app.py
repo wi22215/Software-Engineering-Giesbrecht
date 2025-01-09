@@ -103,25 +103,31 @@ def upload():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(file_path)
 
-    if allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS):
-        # Bild hochladen
+    if allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS) or allowed_file(filename, ALLOWED_VIDEO_EXTENSIONS):
         try:
+            # Benutzerinformationen aus der Datenbank holen
+            connection = sqlite3.connect(DB_PATH)
+            cursor = connection.cursor()
+            cursor.execute("SELECT user_id FROM users WHERE username = ?", (logged_in_user['username'],))
+            user = cursor.fetchone()
+            
+            if user:
+                user_id = user[0]
+                # Datei in der Datenbank speichern
+                cursor.execute(
+                    "INSERT INTO uploads (user_id, file_name, file_path, upload_date) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+                    (user_id, filename, file_path)
+                )
+                connection.commit()
+            connection.close()
+
             if action == "schedule" and upload_time_str:
+                # Geplantes Hochladen
                 schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
-                return jsonify({"message": "Photo scheduled for upload to Instagram."}), 200
+                return jsonify({"message": "Content scheduled for upload to Instagram."}), 200
             else:
+                # Direktes Hochladen
                 upload_photo_to_instagram(file_path, caption)
-                return jsonify({"message": "Content successfully uploaded."}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    elif allowed_file(filename, ALLOWED_VIDEO_EXTENSIONS):
-        # Video hochladen
-        try:
-            if action == "schedule" and upload_time_str:
-                schedule_upload(file_path, caption, upload_time_str, upload_video_to_instagram)
-                return jsonify({"message": "Video scheduled for upload to Instagram."}), 200
-            else:
-                upload_video_to_instagram(file_path, caption)
                 return jsonify({"message": "Content successfully uploaded."}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
