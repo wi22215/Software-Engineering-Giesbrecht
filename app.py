@@ -4,6 +4,7 @@ from datetime import datetime
 from threading import Timer
 from instagrapi import Client
 from werkzeug.utils import secure_filename
+import sqlite3
 
 # Initialisiere Flask
 app = Flask(__name__)
@@ -28,6 +29,27 @@ ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
+# Datenbankverbindung
+DB_PATH = "database/file_management.db"
+
+def ensure_user_in_db(username):
+    """Überprüfe, ob ein Benutzer in der Datenbank existiert, und füge ihn hinzu, falls nicht."""
+    connection = sqlite3.connect(DB_PATH)
+    cursor = connection.cursor()
+
+    # Überprüfen, ob der Benutzer existiert
+    cursor.execute("SELECT user_id FROM users WHERE username = ?", (username,))
+    user = cursor.fetchone()
+
+    if not user:
+        # Benutzer hinzufügen
+        cursor.execute(
+            "INSERT INTO users (username, created_at) VALUES (?, CURRENT_TIMESTAMP)", (username,)
+        )
+        connection.commit()
+
+    connection.close()
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     global logged_in_user
@@ -38,7 +60,11 @@ def login():
         try:
             # Versuche, den Benutzer mit Instagrapi einzuloggen
             cl.login(username, password)
-            logged_in_user = {'username': username, 'password': password}
+            logged_in_user = {'username': username}
+            
+            # Benutzer in der Datenbank sicherstellen
+            ensure_user_in_db(username)
+            
             return redirect(url_for('home'))  # Weiterleitung zur Upload-Seite
         except Exception as e:
             error_message = str(e)
