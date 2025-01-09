@@ -168,10 +168,28 @@ def schedule_upload(file_path, caption, upload_time_str, upload_function):
 # Route: Vergangene Uploads
 @app.route('/past-uploads', methods=['GET'])
 def past_uploads():
+    global logged_in_user
+    if not logged_in_user:
+        return redirect(url_for('login'))  # Weiterleitung zur Login-Seite, falls nicht eingeloggt
+
     try:
-        uploads = os.listdir(app.config['UPLOAD_FOLDER'])
-        uploads = [f for f in uploads if os.path.isfile(os.path.join(app.config['UPLOAD_FOLDER'], f))]
-        return render_template('past_uploads.html', uploads=uploads)
+        connection = sqlite3.connect(DB_PATH)
+        cursor = connection.cursor()
+        cursor.execute("""
+        SELECT file_name, file_path, upload_date
+        FROM uploads
+        JOIN users ON uploads.user_id = users.user_id
+        WHERE users.username = ?
+        """, (logged_in_user['username'],))
+        uploads = cursor.fetchall()
+        connection.close()
+
+        # Umwandlung der Ergebnisse in ein lesbares Format
+        upload_list = [
+            {"file_name": row[0], "file_path": row[1], "upload_date": row[2]} for row in uploads
+        ]
+
+        return render_template('past_uploads.html', uploads=upload_list)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

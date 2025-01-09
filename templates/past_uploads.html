@@ -124,14 +124,14 @@
     <h1>Your Uploaded Files</h1>
     {% if uploads %}
     <div class="uploads">
-        {% for file in uploads %}
+        {% for upload in uploads %}
         <div class="upload-item">
-            {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.webp') %}
-            <img src="/uploads/{{ file }}" alt="{{ file }}">
-            {% elif file.endswith('.mp4') %}
-            <video src="/uploads/{{ file }}" controls></video>
+            {% if upload.file_name.endswith('.jpg') or upload.file_name.endswith('.jpeg') or upload.file_name.endswith('.png') or upload.file_name.endswith('.webp') %}
+            <img src="{{ upload.file_path }}" alt="{{ upload.file_name }}">
+            {% elif upload.file_name.endswith('.mp4') %}
+            <video src="{{ upload.file_path }}" controls></video>
             {% endif %}
-            <a href="/uploads/{{ file }}" target="_blank">{{ file }}</a>
+            <p><strong>Uploaded on:</strong> {{ upload.upload_date }}</p>
         </div>
         {% endfor %}
     </div>
