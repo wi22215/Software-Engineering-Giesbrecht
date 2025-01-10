@@ -5,28 +5,38 @@ from database.db_manager import ensure_user, get_user_id, save_upload, get_uploa
 from services.scheduler_service import schedule_upload
 from services.instagram_service import login_to_instagram, upload_photo_to_instagram
 
-# Initialisiere Flask
+# Initialisiere Flask-Anwendung
 app = Flask(__name__)
 
-# Sicherstellen, dass der Upload-Ordner existiert
+# Konfigurationen
 UPLOAD_FOLDER = "uploads"
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
-
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Variable für gespeicherte Login-Daten
+# Globale Variablen
 logged_in_user = None
 
-# Erlaubte Dateitypen
+# Erlaubte Dateiformate
 ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp'}
 ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
 
 def allowed_file(filename, allowed_extensions):
+    """
+    Überprüft, ob die Datei einen erlaubten Typ hat.
+    :param filename: Dateiname
+    :param allowed_extensions: Set erlaubter Dateiendungen
+    :return: True, wenn der Typ erlaubt ist, sonst False
+    """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
+    """
+    Login-Seite für die Benutzeranmeldung.
+    - POST: Überprüft Login-Daten und leitet zum Home weiter.
+    - GET: Zeigt Login-Formular.
+    """
     global logged_in_user
     if request.method == 'POST':
         username = request.form.get('username')
@@ -41,8 +51,11 @@ def login():
             return render_template('login.html', error=error)
     return render_template('login.html')
 
-@app.route('/home', methods=['GET', 'POST'])
+@app.route('/home', methods=['GET'])
 def home():
+    """
+    Home-Seite nach dem Login.
+    """
     global logged_in_user
     if not logged_in_user:
         return redirect(url_for('login'))
@@ -50,6 +63,11 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    """
+    Upload-Route:
+    - Akzeptiert eine Datei, eine Beschreibung und eine optionale Upload-Zeit.
+    - Unterstützt sofortige und geplante Uploads.
+    """
     global logged_in_user
     if not logged_in_user:
         return redirect(url_for('login'))
@@ -85,6 +103,10 @@ def upload():
 
 @app.route('/past-uploads', methods=['GET'])
 def past_uploads():
+    """
+    Route für vergangene Uploads:
+    - Holt und zeigt alle Uploads des aktuell eingeloggten Benutzers.
+    """
     global logged_in_user
     if not logged_in_user:
         return redirect(url_for('login'))
@@ -98,10 +120,17 @@ def past_uploads():
 
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
+    """
+    Liefert eine hochgeladene Datei zurück.
+    :param filename: Name der Datei
+    """
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/health', methods=['GET'])
 def health_check():
+    """
+    Health-Check-Route, um sicherzustellen, dass der Server läuft.
+    """
     return jsonify({"status": "OK", "message": "Server is running"}), 200
 
 if __name__ == "__main__":

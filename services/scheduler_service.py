@@ -2,7 +2,13 @@ from datetime import datetime
 from threading import Timer
 
 def schedule_upload(file_path, caption, upload_time_str, upload_function):
-    """Plant ein zeitgesteuertes Hochladen."""
+    """
+    Plant einen zeitgesteuerten Upload.
+    :param file_path: Pfad zur Datei
+    :param caption: Beschreibung der Datei
+    :param upload_time_str: Geplanter Upload-Zeitpunkt (Format: YYYY-MM-DDTHH:MM)
+    :param upload_function: Upload-Funktion (z. B. upload_photo_to_instagram)
+    """
     try:
         upload_time = datetime.strptime(upload_time_str, '%Y-%m-%dT%H:%M')
         delay = (upload_time - datetime.now()).total_seconds()
