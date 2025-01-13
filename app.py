@@ -22,21 +22,10 @@ ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp'}
 ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
 
 def allowed_file(filename, allowed_extensions):
-    """
-    Überprüft, ob die Datei einen erlaubten Typ hat.
-    :param filename: Dateiname
-    :param allowed_extensions: Set erlaubter Dateiendungen
-    :return: True, wenn der Typ erlaubt ist, sonst False
-    """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
-    """
-    Login-Seite für die Benutzeranmeldung.
-    - POST: Überprüft Login-Daten und leitet zum Home weiter.
-    - GET: Zeigt Login-Formular.
-    """
     global logged_in_user
     if request.method == 'POST':
         username = request.form.get('username')
@@ -53,21 +42,16 @@ def login():
 
 @app.route('/home', methods=['GET'])
 def home():
-    """
-    Home-Seite nach dem Login.
-    """
     global logged_in_user
     if not logged_in_user:
         return redirect(url_for('login'))
-    return render_template('index.html')
+
+    success = request.args.get('success')
+    message = request.args.get('message', '')
+    return render_template('index.html', success=success, message=message)
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    """
-    Upload-Route:
-    - Akzeptiert eine Datei, eine Beschreibung und eine optionale Upload-Zeit.
-    - Unterstützt sofortige und geplante Uploads.
-    """
     global logged_in_user
     if not logged_in_user:
         return redirect(url_for('login'))
@@ -78,35 +62,28 @@ def upload():
     action = request.form.get('action')
 
     if not file:
-        return jsonify({"error": "No file provided"}), 400
+        return redirect(url_for('home', success=False, message="No file provided."))
 
     filename = secure_filename(file.filename)
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(file_path)
 
-    if allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS) or allowed_file(filename, ALLOWED_VIDEO_EXTENSIONS):
-        try:
-            user_id = get_user_id(logged_in_user['username'])
-            if user_id:
-                save_upload(user_id, filename, file_path)
+    try:
+        user_id = get_user_id(logged_in_user['username'])
+        if user_id:
+            save_upload(user_id, filename, file_path)
 
-            if action == "schedule" and upload_time_str:
-                schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
-                return jsonify({"message": "Content scheduled for upload to Instagram."}), 200
-            else:
-                upload_photo_to_instagram(file_path, caption)
-                return jsonify({"message": "Content successfully uploaded."}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    else:
-        return jsonify({"error": "Invalid file format. Only JPG, JPEG, PNG, WEBP, and MP4 are supported."}), 400
+        if action == "schedule" and upload_time_str:
+            schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
+            return redirect(url_for('home', success=True, message="Content scheduled successfully."))
+        else:
+            upload_photo_to_instagram(file_path, caption)
+            return redirect(url_for('home', success=True, message="Upload successful."))
+    except Exception as e:
+        return redirect(url_for('home', success=False, message=str(e)))
 
 @app.route('/past-uploads', methods=['GET'])
 def past_uploads():
-    """
-    Route für vergangene Uploads:
-    - Holt und zeigt alle Uploads des aktuell eingeloggten Benutzers.
-    """
     global logged_in_user
     if not logged_in_user:
         return redirect(url_for('login'))
@@ -120,17 +97,10 @@ def past_uploads():
 
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
-    """
-    Liefert eine hochgeladene Datei zurück.
-    :param filename: Name der Datei
-    """
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """
-    Health-Check-Route, um sicherzustellen, dass der Server läuft.
-    """
     return jsonify({"status": "OK", "message": "Server is running"}), 200
 
 if __name__ == "__main__":

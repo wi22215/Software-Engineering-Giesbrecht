@@ -24,7 +24,6 @@
             text-align: center;
             font-size: 24px;
             font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         main {
@@ -35,117 +34,51 @@
             padding: 30px;
             border-radius: 20px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        main:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
         }
 
         h1 {
             font-size: 32px;
             margin-bottom: 20px;
-            color: #4f46e5;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background-color: green;
+        }
+
+        .alert-error {
+            background-color: red;
         }
 
         label {
-            font-size: 14px;
             font-weight: bold;
+            margin-bottom: 10px;
             display: block;
-            margin-bottom: 8px;
-            text-align: left;
-            color: #4f46e5;
         }
 
         input, textarea, button {
             width: 100%;
-            padding: 12px;
             margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            box-sizing: border-box;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, textarea:focus, button:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 4px rgba(79, 70, 229, 0.5);
+            padding: 10px;
         }
 
         button {
             background-color: #4f46e5;
             color: white;
-            font-weight: bold;
             font-size: 16px;
-            border: none;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
 
         button:hover {
             background-color: #3b38d6;
-        }
-
-        button:disabled {
-            background-color: #a3a3a3;
-            cursor: not-allowed;
-        }
-
-        .preview {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .preview img, .preview video {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            margin-top: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
-        }
-
-        .preview img:hover, .preview video:hover {
-            transform: scale(1.05);
-        }
-
-        #drag-drop-area {
-            border: 2px dashed #4f46e5;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        #drag-drop-area.dragover {
-            background-color: #e0e7ff;
-            border-color: #3b38d6;
-        }
-
-        footer {
-            background-color: #f1f5f9;
-            padding: 10px;
-            text-align: center;
-            font-size: 12px;
-            color: #4b5563;
-            margin-top: auto;
-            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        footer a {
-            color: #4f46e5;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
@@ -154,98 +87,25 @@
     Instagram Uploader
 </header>
 <main>
+    {% if success %}
+    <div class="alert {{ 'alert-success' if success == 'True' else 'alert-error' }}">
+        {{ message }}
+    </div>
+    {% endif %}
     <h1>Upload Your Post</h1>
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-        <div id="drag-drop-area">Drag and drop your files here or click to select.</div>
-        <input type="file" id="file" name="file" accept="image/*,video/*" hidden required>
+        <label for="file">Choose File</label>
+        <input type="file" id="file" name="file" required>
 
-        <label for="caption">Write a Caption:</label>
-        <textarea id="caption" name="caption" rows="4" placeholder="Add a caption to your post..."></textarea>
+        <label for="caption">Caption</label>
+        <textarea id="caption" name="caption"></textarea>
 
-        <label for="upload_time">Schedule Upload Time:</label>
+        <label for="upload_time">Schedule Upload (Optional)</label>
         <input type="datetime-local" id="upload_time" name="upload_time">
 
-        <div class="preview" id="preview"></div>
-
-        <button type="submit" name="action" value="upload_now" id="uploadNowButton" disabled>Upload Now</button>
-        <button type="submit" name="action" value="schedule" id="scheduleButton" disabled>Schedule Upload</button>
+        <button type="submit" name="action" value="upload_now">Upload Now</button>
+        <button type="submit" name="action" value="schedule">Schedule</button>
     </form>
-    <button id="viewUploads" onclick="viewUploads()">View Past Uploads</button>
 </main>
-
-<footer>
-    &copy; 2024 Instagram Uploader. Created with ❤️ by <a href="#">Clemens, Jasin & Laurenziu</a>.
-</footer>
-<script>
-    // Drag-and-Drop Functionality
-    const dragDropArea = document.getElementById('drag-drop-area');
-    const fileInput = document.getElementById('file');
-    const preview = document.getElementById('preview');
-    const uploadNowButton = document.getElementById('uploadNowButton');
-    const scheduleButton = document.getElementById('scheduleButton');
-    const uploadTimeInput = document.getElementById('upload_time');
-
-    dragDropArea.addEventListener('click', () => fileInput.click());
-
-    dragDropArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dragDropArea.classList.add('dragover');
-    });
-
-    dragDropArea.addEventListener('dragleave', () => {
-        dragDropArea.classList.remove('dragover');
-    });
-
-    dragDropArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dragDropArea.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            fileInput.files = files;
-            previewFile(files[0]);
-            toggleButtons();
-        }
-    });
-
-    // Preview File
-    fileInput.addEventListener('change', () => {
-        const file = fileInput.files[0];
-        previewFile(file);
-        toggleButtons();
-    });
-
-    function previewFile(file) {
-        preview.innerHTML = '';
-        if (file) {
-            const fileURL = URL.createObjectURL(file);
-            if (file.type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = fileURL;
-                preview.appendChild(img);
-            } else if (file.type.startsWith('video/')) {
-                const video = document.createElement('video');
-                video.src = fileURL;
-                video.controls = true;
-                preview.appendChild(video);
-            }
-        }
-    }
-
-    // Toggle Button States
-    function toggleButtons() {
-        const fileSelected = fileInput.files.length > 0;
-        const timeSelected = uploadTimeInput.value !== '';
-
-        uploadNowButton.disabled = !fileSelected;
-        scheduleButton.disabled = !(fileSelected && timeSelected);
-    }
-
-    uploadTimeInput.addEventListener('input', toggleButtons);
-
-    // View Past Uploads
-    function viewUploads() {
-        window.location.href = '/past-uploads';
-    }
-</script>
 </body>
 </html>
