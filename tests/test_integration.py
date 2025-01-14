@@ -64,9 +64,6 @@ class TestLoginIntegration(unittest.TestCase):
             self.assertIn(b'testfile.jpg', response.data)  # Zweiter Upload vorhanden
             print("Hochgeladene Inhalte werden erfolgreich angezeigt.")
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 if __name__ == "__main__":
     unittest.main()
