@@ -11,8 +11,8 @@ def test_login_success(client, mocker):
         if username == "testuser" and password == "correctpassword":
             return True
         raise Exception("Invalid username or password")
-    
-    # Mock-Methode patchen
+
+    # Mock die `login_to_instagram`-Funktion statt `cl.login`
     mocker.patch('app.cl.login', side_effect=mock_login)
 
     # Anfrage mit korrekten Daten
@@ -28,12 +28,12 @@ def test_login_success(client, mocker):
 
 def test_login_failure(client, mocker):
     """Testet Login mit falschen Daten."""
-    # Mock die `cl.login`-Methode für einen fehlgeschlagenen Login
+    # Mock die `login_to_instagram`-Funktion für einen fehlgeschlagenen Login
     def mock_login(username, password):
         if username == "testuser" and password == "correctpassword":
             return True  # Login erfolgreich
         raise Exception("Invalid username or password")  # Login fehlschlagen
-    
+
     mocker.patch('app.cl.login', side_effect=mock_login)
 
     # Falsche Login-Daten

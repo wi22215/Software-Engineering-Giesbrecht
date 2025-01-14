@@ -1,7 +1,9 @@
+import os
 import sqlite3
 
-# Pfad zur SQLite-Datenbank
-DB_PATH = "database/file_management.db"
+# Dynamischer Pfad zur SQLite-Datenbank
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Verzeichnis von db_manager.py
+DB_PATH = os.path.join(BASE_DIR, "../database/file_management.db")
 
 def create_tables():
     """

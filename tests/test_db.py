@@ -1,4 +1,5 @@
-from app import ensure_user_in_db, DB_PATH
+from app import ensure_user
+from database.db_manager import DB_PATH
 import sqlite3
 
 def test_ensure_user_in_db():
@@ -7,7 +8,7 @@ def test_ensure_user_in_db():
     cursor = connection.cursor()
 
     # Benutzer hinzufügen
-    ensure_user_in_db('testuser')
+    ensure_user('testuser')
     
     # Überprüfen, ob der Benutzer existiert
     cursor.execute("SELECT username FROM users WHERE username = ?", ('testuser',))
