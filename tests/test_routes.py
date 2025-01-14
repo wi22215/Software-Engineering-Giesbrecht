@@ -24,7 +24,7 @@ def test_login_success(client, mocker):
     # Erwartungen:
     assert response.status_code == 302  # Weiterleitung
     assert '/home' in response.headers['Location']  # Ziel der Weiterleitung
-
+    print("Ein erfolgreicher Login hat geklappt.")
 
 def test_login_failure(client, mocker):
     """Testet Login mit falschen Daten."""
@@ -44,5 +44,5 @@ def test_login_failure(client, mocker):
 
     assert response.status_code == 200  # Kein Redirect, bleibt auf der Login-Seite
     assert b"Invalid username or password" in response.data  # Fehlernachricht angezeigt
-
+    print("Ein falscher Login ist korrekterweise fehlgeschlagen.")
 

@@ -4,6 +4,8 @@ from werkzeug.utils import secure_filename
 from database.db_manager import ensure_user, get_user_id, save_upload, get_uploads_by_user
 from services.scheduler_service import schedule_upload
 from services.instagram_service import login_to_instagram, upload_photo_to_instagram
+from services.instagram_service import cl
+
 
 # Initialisiere Flask-Anwendung
 app = Flask(__name__)

@@ -3,7 +3,6 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from services.instagram_service import upload_photo_to_instagram
 from app import app
 
 class TestLoginIntegration(unittest.TestCase):
@@ -63,6 +62,7 @@ class TestLoginIntegration(unittest.TestCase):
             self.assertEqual(response.status_code, 200)  # Erfolgreiche Antwort
             self.assertIn(b'testfile.jpg', response.data)  # Erster Upload vorhanden
             self.assertIn(b'testfile.jpg', response.data)  # Zweiter Upload vorhanden
+            print("Hochgeladene Inhalte werden erfolgreich angezeigt.")
 
 if __name__ == "__main__":
     unittest.main()

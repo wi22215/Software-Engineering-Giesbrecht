@@ -20,3 +20,4 @@ def test_ensure_user_in_db():
     cursor.execute("DELETE FROM users WHERE username = ?", ('testuser',))
     connection.commit()
     connection.close()
+    print("Ein Testuser konnte in der Datenbank angelegt und gelöscht werden.")
