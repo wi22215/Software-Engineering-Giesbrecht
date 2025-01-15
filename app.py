@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 import os
+from flask_session import Session
 from werkzeug.utils import secure_filename
 from database.db_manager import ensure_user, get_user_id, save_upload, get_uploads_by_user
 from services.scheduler_service import schedule_upload
@@ -15,6 +16,10 @@ UPLOAD_FOLDER = "uploads"
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SECRET_KEY'] = 'supersecretkey'
+Session(app)
 
 # Globale Variablen
 logged_in_user = None
