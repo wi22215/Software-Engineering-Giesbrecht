@@ -4,7 +4,7 @@ from flask_session import Session
 from werkzeug.utils import secure_filename
 from database.db_manager import ensure_user, get_user_id, save_upload, get_uploads_by_user
 from services.scheduler_service import schedule_upload
-from services.instagram_service import login_to_instagram, upload_photo_to_instagram
+from services.instagram_service import login_to_instagram, upload_photo_to_instagram, upload_video_to_instagram
 from services.instagram_service import cl
 
 
@@ -72,7 +72,17 @@ def upload():
     if not file:
         return redirect(url_for('home', success=False, message="No file provided."))
 
+    # Überprüfen des Dateityps anhand der Listen
     filename = secure_filename(file.filename)
+    file_extension = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+
+    if file_extension in ALLOWED_IMAGE_EXTENSIONS:
+        file_type = 'image'
+    elif file_extension in ALLOWED_VIDEO_EXTENSIONS:
+        file_type = 'video'
+    else:
+        return redirect(url_for('home', success=False, message="Invalid file type."))
+
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(file_path)
 
@@ -82,13 +92,20 @@ def upload():
             save_upload(user_id, filename, file_path)
 
         if action == "schedule" and upload_time_str:
-            schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
+            # Wähle die richtige Upload-Funktion basierend auf dem Dateityp
+            upload_function = upload_photo_to_instagram if file_type == 'image' else upload_video_to_instagram
+            schedule_upload(file_path, caption, upload_time_str, upload_function)
             return redirect(url_for('home', success=True, message="Content scheduled successfully."))
         else:
-            upload_photo_to_instagram(file_path, caption)
+            # Direkter Upload basierend auf dem Dateityp
+            if file_type == 'image':
+                upload_photo_to_instagram(file_path, caption)
+            else:
+                upload_video_to_instagram(file_path, caption)
             return redirect(url_for('home', success=True, message="Upload successful."))
     except Exception as e:
         return redirect(url_for('home', success=False, message=str(e)))
+
 
 @app.route('/past-uploads', methods=['GET'])
 def past_uploads():
