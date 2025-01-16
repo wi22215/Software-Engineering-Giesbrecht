@@ -26,7 +26,7 @@ logged_in_user = None
 
 # Erlaubte Dateiformate
 ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp'}
-ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'mov'}
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
