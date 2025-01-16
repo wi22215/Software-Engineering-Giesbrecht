@@ -148,7 +148,15 @@
             text-decoration: underline;
         }
 
-        .alert {
+         .loading-message {
+             display: none;
+             color: #4f46e5;
+             margin-bottom: 10px;
+             font-weight: bold;
+         }
+
+
+    .alert {
             margin-bottom: 20px;
             padding: 10px;
             border-radius: 8px;
@@ -191,6 +199,8 @@
 
         <div class="preview" id="preview"></div>
 
+        <div id="loadingMessage" class="loading-message">Uploading, please wait...</div>
+
         <button type="submit" name="action" value="upload_now" id="uploadNowButton" disabled>Upload Now</button>
         <button type="submit" name="action" value="schedule" id="scheduleButton" disabled>Schedule Upload</button>
     </form>
@@ -208,6 +218,8 @@
     const uploadNowButton = document.getElementById('uploadNowButton');
     const scheduleButton = document.getElementById('scheduleButton');
     const uploadTimeInput = document.getElementById('upload_time');
+    const uploadForm = document.getElementById('uploadForm');
+    const loadingMessage = document.getElementById('loadingMessage');
 
     dragDropArea.addEventListener('click', () => fileInput.click());
     dragDropArea.addEventListener('dragover', (e) => {
@@ -264,6 +276,10 @@
     function viewUploads() {
         window.location.href = '/past-uploads';
     }
+
+    uploadForm.addEventListener('submit', () => {
+        loadingMessage.style.display = 'block';
+    });
 </script>
 </body>
 </html>
