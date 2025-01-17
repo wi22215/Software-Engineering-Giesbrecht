@@ -4,7 +4,7 @@ from flask_session import Session
 from werkzeug.utils import secure_filename
 from database.db_manager import ensure_user, get_user_id, save_upload, get_uploads_by_user
 from services.scheduler_service import schedule_upload
-from services.instagram_service import login_to_instagram, upload_photo_to_instagram, upload_video_to_instagram
+from services.instagram_service import login_to_instagram, upload_photo_to_instagram, upload_video_to_instagram, upload_reel_to_instagram
 from services.instagram_service import cl
 
 
@@ -68,21 +68,12 @@ def upload():
     caption = request.form.get('caption')
     upload_time_str = request.form.get('upload_time')
     action = request.form.get('action')
+    is_reel = request.form.get('is_reel') == 'on'  # Überprüfen, ob es sich um ein Reel handelt
 
     if not file:
         return redirect(url_for('home', success=False, message="No file provided."))
 
-    # Überprüfen des Dateityps anhand der Listen
     filename = secure_filename(file.filename)
-    file_extension = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
-
-    if file_extension in ALLOWED_IMAGE_EXTENSIONS:
-        file_type = 'image'
-    elif file_extension in ALLOWED_VIDEO_EXTENSIONS:
-        file_type = 'video'
-    else:
-        return redirect(url_for('home', success=False, message="Invalid file type."))
-
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(file_path)
 
@@ -91,18 +82,33 @@ def upload():
         if user_id:
             save_upload(user_id, filename, file_path)
 
+        # Wenn es ein Reel ist, den richtigen Upload-Befehl verwenden
+        if is_reel:
+            if filename.lower().endswith(('mp4', 'mov', 'avi')):
+                # Video-Upload für Reels ohne Thumbnail
+                upload_reel_to_instagram(file_path, caption)
+            else:
+                return redirect(url_for('home', success=False, message="Invalid file format for Reels. Only MP4, MOV, AVI are supported."))
+        elif filename.lower().endswith(('jpg', 'jpeg', 'png', 'webp')):
+            # Nur für Bilder
+            upload_photo_to_instagram(file_path, caption)
+        elif filename.lower().endswith(('mp4', 'mov', 'avi')):
+            # Nur für Videos (wenn es kein Reel ist)
+            upload_video_to_instagram(file_path, caption)
+        else:
+            return redirect(url_for('home', success=False, message="Invalid file format. Only JPG, JPEG, PNG, WEBP and MP4, MOV, AVI are supported."))
+
+        # Geplanter Upload
         if action == "schedule" and upload_time_str:
-            # Wähle die richtige Upload-Funktion basierend auf dem Dateityp
-            upload_function = upload_photo_to_instagram if file_type == 'image' else upload_video_to_instagram
-            schedule_upload(file_path, caption, upload_time_str, upload_function)
+            if is_reel:
+                schedule_upload(file_path, caption, upload_time_str, upload_reel_to_instagram)
+            else:
+                schedule_upload(file_path, caption, upload_time_str, upload_photo_to_instagram)
+
             return redirect(url_for('home', success=True, message="Content scheduled successfully."))
         else:
-            # Direkter Upload basierend auf dem Dateityp
-            if file_type == 'image':
-                upload_photo_to_instagram(file_path, caption)
-            else:
-                upload_video_to_instagram(file_path, caption)
             return redirect(url_for('home', success=True, message="Upload successful."))
+
     except Exception as e:
         return redirect(url_for('home', success=False, message=str(e)))
 

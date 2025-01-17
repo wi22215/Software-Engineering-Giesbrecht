@@ -39,3 +39,16 @@ def upload_video_to_instagram(file_path, caption):
         print("Video successfully uploaded to Instagram.")
     except Exception as e:
         raise Exception(f"Instagram API Error: {e}")
+
+def upload_reel_to_instagram(file_path, caption):
+    """
+    Lädt ein Reel zu Instagram hoch.
+    :param file_path: Pfad zur Videodatei
+    :param caption: Beschreibung des Reels
+    """
+    try:
+        cl.clip_upload(file_path, caption)
+        print("Reel successfully uploaded to Instagram.")
+    except Exception as e:
+        raise Exception(f"Instagram API Error: {e}")
+
