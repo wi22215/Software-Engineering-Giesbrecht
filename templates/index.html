@@ -198,7 +198,7 @@
         <input type="datetime-local" id="upload_time" name="upload_time">
 
         <label for="is_reel">Is this a Reel?</label>
-        <input type="checkbox" id="is_reel" name="is_reel">
+        <input type="checkbox" id="is_reel" name="is_reel" disabled>
 
         <div class="preview" id="preview"></div>
 
@@ -223,6 +223,7 @@
     const uploadTimeInput = document.getElementById('upload_time');
     const uploadForm = document.getElementById('uploadForm');
     const loadingMessage = document.getElementById('loadingMessage');
+    const isReelCheckbox = document.getElementById('is_reel');
 
     dragDropArea.addEventListener('click', () => fileInput.click());
     dragDropArea.addEventListener('dragover', (e) => {
@@ -247,6 +248,20 @@
         const file = fileInput.files[0];
         previewFile(file);
         toggleButtons();
+    });
+
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (file) {
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (['mp4', 'mov'].includes(fileExtension)) {
+                isReelCheckbox.disabled = false; // Aktivieren, wenn Video
+            } else {
+                isReelCheckbox.disabled = true; // Deaktivieren, wenn kein Video
+            }
+        } else {
+            isReelCheckbox.disabled = true; // Deaktivieren, wenn keine Datei ausgewählt
+        }
     });
 
     function previewFile(file) {
